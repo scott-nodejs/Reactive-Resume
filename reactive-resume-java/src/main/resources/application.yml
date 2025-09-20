@@ -1,0 +1,101 @@
+# 应用配置
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: reactive-resume
+
+  # 数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://2zetj73qo008qm813io.mysql.rds.aliyuncs.com:3306/reactive_resume?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: yima
+    password: Nodejs@123
+
+  # Redis配置 (暂时简化)
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+
+  # 邮件配置
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: your-email@gmail.com
+    password: your-app-password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# MyBatis Plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: ASSIGN_UUID
+
+# Spring Security配置 (使用自定义UserDetailsService)
+
+# 文件存储配置
+minio:
+  endpoint: http://10.100.123.219:80
+  access-key: dispose-web-pre
+  secret-key: ndYn92iIL37obz
+  bucket-name: dispose-web
+
+# Chrome浏览器服务配置
+app:
+  chrome:
+    url: ws://localhost:8080
+    token: chrome_token
+  artboard:
+    url: http://localhost:6173
+  frontend:
+    url: http://localhost:5173
+  # 功能开关配置
+  feature:
+    disable-signups: false
+    disable-email-auth: false
+  # GitHub配置
+  github:
+    repository: AmruthPillai/Reactive-Resume
+  # Crowdin配置
+  crowdin:
+    project-id:
+    personal-token:
+  cors:
+    allowed-origins: http://localhost:5173,http://localhost:3000
+  upload:
+    max-file-size: 10MB
+    allowed-types: jpg,jpeg,png,pdf
+
+# JWT配置
+jwt:
+  secret: reactive-resume-secret-key-2024
+  expiration: 86400000 # 24小时
+  refresh-expiration: 604800000 # 7天
+
+
+# 日志配置
+logging:
+  level:
+    root: info
+    org.springframework: info
+    org.springframework.beans.factory.support: debug
+    org.springframework.context.support: debug
+    com.reactive: debug
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# 启用条件评估报告
+debug: true
+

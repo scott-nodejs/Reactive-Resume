@@ -1,0 +1,32 @@
+# 测试配置 - 最小化配置
+server:
+  port: 8080
+
+spring:
+  application:
+    name: reactive-resume-test
+  
+  # 数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://2zetj73qo008qm813io.mysql.rds.aliyuncs.com:3306/reactive_resume?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: yima
+    password: Nodejs@123
+
+# MyBatis Plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: ASSIGN_UUID
+
+# JWT配置
+jwt:
+  secret: reactive-resume-secret-key-2024
+  expiration: 86400000
+
+logging:
+  level:
+    com.reactive.resume: DEBUG
+    org.springframework: INFO
