@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * 简历服务实现类
@@ -34,6 +35,7 @@ public class ResumeServiceImpl implements ResumeService {
 
     private final ResumeMapper resumeMapper;
     private final UserService userService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     @Transactional
@@ -55,7 +57,8 @@ public class ResumeServiceImpl implements ResumeService {
         resume.setId(IdUtil.fastSimpleUUID());
         resume.setTitle(createResumeDto.getTitle());
         resume.setSlug(slug);
-        resume.setData(""); // 默认空JSON
+        // 设置默认的简历数据JSON，包含默认模板和用户信息
+        resume.setData(getDefaultResumeDataWithUserInfo(user));
         resume.setVisibility(createResumeDto.getVisibility());
         resume.setLocked(false);
         resume.setUserId(userId);
@@ -289,6 +292,19 @@ public class ResumeServiceImpl implements ResumeService {
     private ResumeDto convertToDto(Resume resume) {
         ResumeDto dto = new ResumeDto();
         BeanUtils.copyProperties(resume, dto);
+        
+        // 将JSON字符串转换为对象
+        if (resume.getData() != null && !resume.getData().isEmpty()) {
+            try {
+                // 使用Jackson将JSON字符串解析为对象
+                Object dataObject = objectMapper.readValue(resume.getData(), Object.class);
+                dto.setData(dataObject);
+            } catch (Exception e) {
+                log.error("解析简历数据失败: {}", e.getMessage());
+                dto.setData(null);
+            }
+        }
+        
         return dto;
     }
 
@@ -324,5 +340,115 @@ public class ResumeServiceImpl implements ResumeService {
         QueryWrapper<Resume> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId).eq("slug", slug);
         return resumeMapper.selectCount(queryWrapper) > 0;
+    }
+
+    /**
+     * 获取包含用户信息的默认简历数据JSON
+     */
+    private String getDefaultResumeDataWithUserInfo(User user) {
+        return "{"
+            + "\"basics\":{"
+                + "\"name\":\"" + escapeJson(user.getName() != null ? user.getName() : "") + "\","
+                + "\"headline\":\"\","
+                + "\"email\":\"" + escapeJson(user.getEmail() != null ? user.getEmail() : "") + "\","
+                + "\"phone\":\"\","
+                + "\"location\":\"\","
+                + "\"url\":{\"label\":\"\",\"href\":\"\"},"
+                + "\"customFields\":[],"
+                + "\"picture\":{"
+                    + "\"url\":\"" + escapeJson(user.getPicture() != null ? user.getPicture() : "") + "\","
+                    + "\"size\":64,"
+                    + "\"aspectRatio\":1,"
+                    + "\"borderRadius\":0,"
+                    + "\"effects\":{\"hidden\":false,\"border\":false,\"grayscale\":false}"
+                + "}"
+            + "},"
+            + "\"sections\":{"
+                + "\"summary\":{\"name\":\"Summary\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"summary\",\"content\":\"<p></p>\"},"
+                + "\"awards\":{\"name\":\"Awards\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"awards\",\"items\":[]},"
+                + "\"certifications\":{\"name\":\"Certifications\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"certifications\",\"items\":[]},"
+                + "\"education\":{\"name\":\"Education\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"education\",\"items\":[]},"
+                + "\"experience\":{\"name\":\"Experience\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"experience\",\"items\":[]},"
+                + "\"volunteer\":{\"name\":\"Volunteering\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"volunteer\",\"items\":[]},"
+                + "\"interests\":{\"name\":\"Interests\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"interests\",\"items\":[]},"
+                + "\"languages\":{\"name\":\"Languages\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"languages\",\"items\":[]},"
+                + "\"profiles\":{\"name\":\"Profiles\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"profiles\",\"items\":[]},"
+                + "\"projects\":{\"name\":\"Projects\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"projects\",\"items\":[]},"
+                + "\"publications\":{\"name\":\"Publications\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"publications\",\"items\":[]},"
+                + "\"references\":{\"name\":\"References\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"references\",\"items\":[]},"
+                + "\"skills\":{\"name\":\"Skills\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"skills\",\"items\":[]},"
+                + "\"custom\":{}"
+            + "},"
+            + "\"metadata\":{"
+                + "\"template\":\"rhyhorn\","
+                + "\"layout\":[[[\"profiles\",\"summary\",\"experience\",\"education\",\"projects\",\"volunteer\",\"references\"],[\"skills\",\"interests\",\"certifications\",\"awards\",\"publications\",\"languages\"]]],"
+                + "\"css\":{\"value\":\"* {\\n\\toutline: 1px solid #000;\\n\\toutline-offset: 4px;\\n}\",\"visible\":false},"
+                + "\"page\":{\"margin\":18,\"format\":\"a4\",\"options\":{\"breakLine\":true,\"pageNumbers\":true}},"
+                + "\"theme\":{\"background\":\"#ffffff\",\"text\":\"#000000\",\"primary\":\"#dc2626\"},"
+                + "\"typography\":{\"font\":{\"family\":\"IBM Plex Serif\",\"subset\":\"latin\",\"variants\":[\"regular\"],\"size\":14},\"lineHeight\":1.5,\"hideIcons\":false,\"underlineLinks\":true},"
+                + "\"notes\":\"\""
+            + "}"
+        + "}";
+    }
+
+    /**
+     * 获取默认简历数据JSON（不包含用户信息）
+     */
+    private String getDefaultResumeData() {
+        return "{"
+            + "\"basics\":{"
+                + "\"name\":\"\","
+                + "\"headline\":\"\","
+                + "\"email\":\"\","
+                + "\"phone\":\"\","
+                + "\"location\":\"\","
+                + "\"url\":{\"label\":\"\",\"href\":\"\"},"
+                + "\"customFields\":[],"
+                + "\"picture\":{"
+                    + "\"url\":\"\","
+                    + "\"size\":64,"
+                    + "\"aspectRatio\":1,"
+                    + "\"borderRadius\":0,"
+                    + "\"effects\":{\"hidden\":false,\"border\":false,\"grayscale\":false}"
+                + "}"
+            + "},"
+            + "\"sections\":{"
+                + "\"summary\":{\"name\":\"Summary\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"summary\",\"content\":\"<p></p>\"},"
+                + "\"awards\":{\"name\":\"Awards\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"awards\",\"items\":[]},"
+                + "\"certifications\":{\"name\":\"Certifications\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"certifications\",\"items\":[]},"
+                + "\"education\":{\"name\":\"Education\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"education\",\"items\":[]},"
+                + "\"experience\":{\"name\":\"Experience\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"experience\",\"items\":[]},"
+                + "\"volunteer\":{\"name\":\"Volunteering\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"volunteer\",\"items\":[]},"
+                + "\"interests\":{\"name\":\"Interests\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"interests\",\"items\":[]},"
+                + "\"languages\":{\"name\":\"Languages\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"languages\",\"items\":[]},"
+                + "\"profiles\":{\"name\":\"Profiles\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"profiles\",\"items\":[]},"
+                + "\"projects\":{\"name\":\"Projects\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"projects\",\"items\":[]},"
+                + "\"publications\":{\"name\":\"Publications\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"publications\",\"items\":[]},"
+                + "\"references\":{\"name\":\"References\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"references\",\"items\":[]},"
+                + "\"skills\":{\"name\":\"Skills\",\"columns\":1,\"separateLinks\":true,\"visible\":true,\"id\":\"skills\",\"items\":[]},"
+                + "\"custom\":{}"
+            + "},"
+            + "\"metadata\":{"
+                + "\"template\":\"rhyhorn\","
+                + "\"layout\":[[[\"profiles\",\"summary\",\"experience\",\"education\",\"projects\",\"volunteer\",\"references\"],[\"skills\",\"interests\",\"certifications\",\"awards\",\"publications\",\"languages\"]]],"
+                + "\"css\":{\"value\":\"* {\\n\\toutline: 1px solid #000;\\n\\toutline-offset: 4px;\\n}\",\"visible\":false},"
+                + "\"page\":{\"margin\":18,\"format\":\"a4\",\"options\":{\"breakLine\":true,\"pageNumbers\":true}},"
+                + "\"theme\":{\"background\":\"#ffffff\",\"text\":\"#000000\",\"primary\":\"#dc2626\"},"
+                + "\"typography\":{\"font\":{\"family\":\"IBM Plex Serif\",\"subset\":\"latin\",\"variants\":[\"regular\"],\"size\":14},\"lineHeight\":1.5,\"hideIcons\":false,\"underlineLinks\":true},"
+                + "\"notes\":\"\""
+            + "}"
+        + "}";
+    }
+
+    /**
+     * JSON字符串转义
+     */
+    private String escapeJson(String str) {
+        if (str == null) return "";
+        return str.replace("\\", "\\\\")
+                  .replace("\"", "\\\"")
+                  .replace("\n", "\\n")
+                  .replace("\r", "\\r")
+                  .replace("\t", "\\t");
     }
 }

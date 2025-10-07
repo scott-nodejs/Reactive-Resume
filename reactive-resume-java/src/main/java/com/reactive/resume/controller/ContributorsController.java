@@ -27,13 +27,13 @@ public class ContributorsController {
 
     @Operation(summary = "获取GitHub贡献者")
     @GetMapping("/github")
-    public Result<List<ContributorDto>> getGitHubContributors() {
-        return Result.success(contributorsService.getGitHubContributors());
+    public List<ContributorDto> getGitHubContributors() {
+        return contributorsService.getGitHubContributors();
     }
 
     @Operation(summary = "获取Crowdin贡献者")
     @GetMapping("/crowdin")
-    public Result<List<ContributorDto>> getCrowdinContributors() {
-        return Result.success(contributorsService.getCrowdinContributors());
+    public List<ContributorDto> getCrowdinContributors() {
+        return contributorsService.getCrowdinContributors();
     }
 }

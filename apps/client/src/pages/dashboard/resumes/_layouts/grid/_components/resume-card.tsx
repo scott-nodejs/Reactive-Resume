@@ -33,7 +33,16 @@ export const ResumeCard = ({ resume }: Props) => {
   const { open } = useDialog<ResumeDto>("resume");
   const { open: lockOpen } = useDialog<ResumeDto>("lock");
 
-  const template = resume.data.metadata.template;
+  // 安全地获取模板名称，处理 data 可能是字符串的情况
+  let template = "rhyhorn"; // 默认模板
+  try {
+    if (resume.data) {
+      const data = typeof resume.data === "string" ? JSON.parse(resume.data) : resume.data;
+      template = data?.metadata?.template || "rhyhorn";
+    }
+  } catch (error) {
+    console.warn("Failed to parse resume data:", error);
+  }
   const lastUpdated = dayjs().to(resume.updatedAt);
 
   const onOpen = () => {

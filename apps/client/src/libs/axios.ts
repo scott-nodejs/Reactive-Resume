@@ -14,11 +14,13 @@ import { queryClient } from "./query-client";
 
 export const axios = _axios.create({ baseURL: "/api", withCredentials: true });
 
-// Intercept responses to transform ISO dates to JS date objects
+// Intercept responses: unwrap backend { code, message, data } shape and transform ISO dates
 axios.interceptors.response.use(
   (response) => {
-    const transformedResponse = deepSearchAndParseDates(response.data, ["createdAt", "updatedAt"]);
-    return { ...response, data: transformedResponse };
+    const raw = response.data;
+    const unwrapped = raw && typeof raw === "object" && "data" in raw ? (raw as any).data : raw;
+    const transformed = deepSearchAndParseDates(unwrapped, ["createdAt", "updatedAt"]);
+    return { ...response, data: transformed };
   },
   (error) => {
     const message = error.response?.data.message as ErrorMessage;

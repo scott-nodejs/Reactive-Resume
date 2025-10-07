@@ -19,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.http.HttpMethod;
 
 import java.util.Arrays;
 
@@ -53,21 +54,23 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
             .authorizeHttpRequests(auth -> auth
-                // 公开接口
+                // 公开接口（注意：已设置 context-path=/api，这里不要带 /api 前缀）
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(
-                    "/api/auth/**",
-                    "/api/health/**",
-                    "/api/feature/**",
-                    "/api/translation/**",
-                    "/api/contributors/**",
-                    "/api/doc.html",
-                    "/api/swagger-ui/**",
-                    "/api/v3/api-docs/**",
+                    "/auth/**",
+                    "/resume/**",  // 临时开放简历接口用于开发
+                    "/health/**",
+                    "/feature/**",
+                    "/translation/**",
+                    "/contributors/**",
+                    "/doc.html",
+                    "/swagger-ui/**",
+                    "/v3/api-docs/**",
                     "/webjars/**",
                     "/favicon.ico",
                     "/error"
                 ).permitAll()
-                // 需要认证的接口
+                // 其余接口需要认证
                 .anyRequest().authenticated()
             );
 

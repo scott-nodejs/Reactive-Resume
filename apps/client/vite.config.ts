@@ -39,6 +39,44 @@ export default defineConfig({
     }),
     lingui(),
     nxViteTsPaths(),
+    /**
+     * 在仅启动 client 的开发环境下，转换认证提供者响应格式。
+     * Java 后端返回对象格式，前端期望数组格式。
+     */
+    {
+      name: "mock-auth-apis",
+      configureServer(server) {
+        // Mock auth providers endpoint
+        server.middlewares.use("/api/auth/providers", (req, res, next) => {
+          if (req.method === "GET") {
+            // 模拟 Java 后端返回的格式，转换为前端期望的数组格式
+            const mockJavaResponse = {
+              code: 200,
+              message: "操作成功",
+              data: {
+                github: true,
+                google: true,
+                openid: false,
+                openidName: null
+              },
+              timestamp: Date.now()
+            };
+            
+            const providers = [];
+            if (mockJavaResponse.data.github) providers.push("github");
+            if (mockJavaResponse.data.google) providers.push("google");
+            if (mockJavaResponse.data.openid) providers.push("openid");
+            providers.unshift("email");
+            
+            res.setHeader("Content-Type", "application/json");
+            res.end(JSON.stringify(providers));
+            return;
+          }
+          next();
+        });
+
+      },
+    },
   ],
 
   test: {

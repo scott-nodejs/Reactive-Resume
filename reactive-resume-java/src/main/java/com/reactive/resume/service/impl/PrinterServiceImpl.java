@@ -84,7 +84,7 @@ public class PrinterServiceImpl implements PrinterService {
     @Override
     public void printResumeToResponse(ResumeDto resume, HttpServletResponse response) {
         if (!isBrowserAvailable()) {
-            throw new BusinessException("PDF生成服务不可用");
+            throw new BusinessException("PDF生成服务不可用，请确保Chrome服务已启动在 " + chromeUrl);
         }
 
         try {

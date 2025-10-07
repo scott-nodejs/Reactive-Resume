@@ -27,7 +27,7 @@ public class TranslationController {
 
     @Operation(summary = "获取支持的语言列表")
     @GetMapping("/languages")
-    public Result<List<LanguageDto>> getLanguages() {
-        return Result.success(translationService.getSupportedLanguages());
+    public List<LanguageDto> getLanguages() {
+        return translationService.getSupportedLanguages();
     }
 }

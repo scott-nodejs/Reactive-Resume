@@ -123,12 +123,25 @@ public class JwtUtil {
 
     /**
      * 从请求中获取令牌
+     * 首先从Authorization Header中获取，然后从Cookie中获取
      */
     public String getTokenFromRequest(HttpServletRequest request) {
+        // 首先从Header中获取
         String authHeader = request.getHeader(TOKEN_HEADER);
         if (StrUtil.isNotBlank(authHeader) && authHeader.startsWith(TOKEN_PREFIX)) {
             return authHeader.substring(TOKEN_PREFIX.length());
         }
+        
+        // 然后从Cookie中获取
+        jakarta.servlet.http.Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (jakarta.servlet.http.Cookie cookie : cookies) {
+                if ("accessToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        
         return null;
     }
 

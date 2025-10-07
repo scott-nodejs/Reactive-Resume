@@ -30,8 +30,8 @@ public class ResumeDto {
     @Schema(description = "简历别名")
     private String slug;
 
-    @Schema(description = "简历数据(JSON)")
-    private String data;
+    @Schema(description = "简历数据")
+    private Object data;
 
     @Schema(description = "可见性")
     private String visibility;

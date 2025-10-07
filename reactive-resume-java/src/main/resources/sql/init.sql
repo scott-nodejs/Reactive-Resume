@@ -32,6 +32,23 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_verification_token (verification_token)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
 
+-- 插入默认用户（用于开发测试）
+INSERT IGNORE INTO users (
+    id, username, email, name, password, locale, email_verified, 
+    provider, created_at, updated_at
+) VALUES (
+    'demo-user-id', 
+    'demo', 
+    'demo@example.com', 
+    'Demo User', 
+    '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iYqiSfFdEWdgJKj6yKjrByCpfF5a', -- 密码: demo123
+    'zh-CN', 
+    TRUE, 
+    'email', 
+    NOW(), 
+    NOW()
+);
+
 -- 简历表
 CREATE TABLE IF NOT EXISTS resumes (
     id VARCHAR(36) PRIMARY KEY COMMENT '简历ID',
@@ -62,6 +79,23 @@ CREATE TABLE IF NOT EXISTS resume_statistics (
     FOREIGN KEY (resume_id) REFERENCES resumes(id) ON DELETE CASCADE,
     INDEX idx_resume_id (resume_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历统计表';
+
+-- 插入scott用户（用于开发测试）
+INSERT IGNORE INTO users (
+    id, username, email, name, password, locale, email_verified,
+    provider, created_at, updated_at
+) VALUES (
+    'scott@123.com',
+    'scott',
+    'scott@123.com',
+    'Scott User',
+    '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iYqiSfFdEWdgJKj6yKjrByCpfF5a', -- 密码: demo123
+    'zh-CN',
+    TRUE,
+    'email',
+    NOW(),
+    NOW()
+);
 
 -- 插入默认管理员用户
 INSERT IGNORE INTO users (
